@@ -142,11 +142,6 @@ class _GradientGeneratorPageState extends State<GradientGeneratorPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get screen size
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-    
     return Scaffold(
       body: AnimatedContainer(
         duration: const Duration(seconds: 3),
@@ -159,129 +154,116 @@ class _GradientGeneratorPageState extends State<GradientGeneratorPage> {
                 : _currentGradientColors,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Clock Display
-                Text(
-                  _currentTime,
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.15, // 15% of screen width
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: const [
-                      Shadow(
-                        blurRadius: 10.0,
-                        color: Colors.black26,
-                        offset: Offset(2.0, 2.0),
-                      ),
-                    ],
-                  ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Clock Display
+              Text(
+                _currentTime,
+                style: const TextStyle(
+                  fontSize: 80,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 10.0,
+                      color: Colors.black26,
+                      offset: Offset(2.0, 2.0),
+                    ),
+                  ],
                 ),
-                Text(
-                  _currentDate,
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.045, // 4.5% of screen width
-                    color: Colors.white,
-                    shadows: const [
-                      Shadow(
-                        blurRadius: 5.0,
-                        color: Colors.black26,
-                        offset: Offset(1.0, 1.0),
-                      ),
-                    ],
-                  ),
+              ),
+              Text(
+                _currentDate,
+                style: const TextStyle(
+                  fontSize: 24,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 5.0,
+                      color: Colors.black26,
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],
                 ),
-                SizedBox(height: screenHeight * 0.05), // 5% of screen height
-                
-                // Weather Display
-                _isLoading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : _weatherData != null
-                    ? _buildWeatherInfo(screenWidth, screenHeight)
-                    : Text(
-                        'Weather data unavailable',
-                        style: TextStyle(
-                          fontSize: screenWidth * 0.04, // 4% of screen width
-                          color: Colors.white,
-                        ),
+              ),
+              const SizedBox(height: 40),
+              
+              // Weather Display
+              _isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : _weatherData != null
+                  ? _buildWeatherInfo()
+                  : const Text(
+                      'Weather data unavailable',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
                       ),
-              ],
-            ),
+                    ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildWeatherInfo(double screenWidth, double screenHeight) {
-    final currentWeather = _weatherData?['current'];
-    if (currentWeather == null) {
-      return Text(
-        'No weather data',
-        style: TextStyle(
-          fontSize: screenWidth * 0.04,
-          color: Colors.white,
+  Widget _buildWeatherInfo() {
+  final currentWeather = _weatherData?['current'];
+  if (currentWeather == null) return const Text('No weather data');
+  
+  final temp = currentWeather['temperature_2m'];
+  final weatherCode = currentWeather['weather_code'];
+  final windSpeed = currentWeather['wind_speed_10m'];
+  final weatherDescription = _getWeatherDescription(weatherCode);
+  
+  return Container(
+    padding: const EdgeInsets.all(40),
+    constraints: const BoxConstraints(minWidth: 250, minHeight: 250),
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.25),
+      shape: BoxShape.circle,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 10,
+          spreadRadius: 1,
         ),
-      );
-    }
-    
-    final temp = currentWeather['temperature_2m'];
-    final weatherCode = currentWeather['weather_code'];
-    final windSpeed = currentWeather['wind_speed_10m'];
-    final weatherDescription = _getWeatherDescription(weatherCode);
-    
-    // Calculate responsive sizes
-    final containerSize = screenWidth * 0.4; // 40% of screen width
-    
-    return Container(
-      padding: EdgeInsets.all(screenWidth * 0.05), // 5% of screen width
-      width: containerSize,
-      height: containerSize,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            spreadRadius: 1,
+      ],
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '$temp°C',
+          style: const TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            '$temp°C',
-            style: TextStyle(
-              fontSize: screenWidth * 0.09, // 9% of screen width
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          weatherDescription,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 18,
+            color: Colors.white,
           ),
-          SizedBox(height: screenHeight * 0.01), // 1% of screen height
-          Text(
-            weatherDescription,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: screenWidth * 0.035, // 3.5% of screen width
-              color: Colors.white,
-            ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          'Wind: $windSpeed km/h',
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.white,
           ),
-          SizedBox(height: screenHeight * 0.005), // 0.5% of screen height
-          Text(
-            'Wind: $windSpeed km/h',
-            style: TextStyle(
-              fontSize: screenWidth * 0.025, // 2.5% of screen width
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+
+      ],
+    ),
+  );
+}
 }
